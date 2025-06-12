@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}Relatório de Stock Mínimo{% endblock %}
+
+{% block content %}
+<h3>Relatório de Stock Mínimo</h3>
+
+<a href="{{ url_for('main.relatorio_stock_minimo') }}?pdf=1" class="btn btn-danger mb-3">
+  📄 Gerar PDF
+</a>
+
+<table class="table table-striped">
+  <thead class="table-dark">
+    <tr>
+      <th>Produto</th>
+      <th>Stock Atual</th>
+      <th>Stock Mínimo</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for produto in produtos %}
+    <tr>
+      <td>{{ produto.nome }}</td>
+      <td>{{ produto.stock_atual }}</td>
+      <td>{{ produto.stock_minimo }}</td>
+      <td>
+        {% if produto.stock_atual <= produto.stock_minimo %}
+          <span class="badge bg-danger">Abaixo do mínimo</span>
+        {% else %}
+          <span class="badge bg-success">Ok</span>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if not produtos %}
+<div class="alert alert-info mt-3">Nenhum produto encontrado.</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<canvas id="graficoStock" height="100"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById('graficoStock').getContext('2d');
+
+  const nomes = [{% for p in produtos %}"{{ p.nome }}",{% endfor %}];
+  const stocks = [{% for p in produtos %}{{ p.stock_atual }},{% endfor %}];
+  const stocksMinimos = [{% for p in produtos %}{{ p.stock_minimo }},{% endfor %}];
+
+  const chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: nomes,
+      datasets: [
+        {
+          label: 'Stock Atual',
+          data: stocks,
+          backgroundColor: 'rgba(255, 159, 64, 0.7)'
+        },
+        {
+          label: 'Stock Mínimo',
+          data: stocksMinimos,
+          backgroundColor: 'rgba(255, 99, 132, 0.7)'
+        }
+      ]
+    },
+    options: {
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+</script>
+{% endblock %}

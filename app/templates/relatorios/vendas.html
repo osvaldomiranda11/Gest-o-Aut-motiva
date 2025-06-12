@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}Relatório de Vendas{% endblock %}
+
+{% block content %}
+<h3>Relatório de Vendas Diárias</h3>
+
+<a href="{{ url_for('main.relatorio_vendas') }}?pdf=1" class="btn btn-danger mb-3">
+  📄 Gerar PDF
+</a>
+
+<form method="POST" class="row g-3 mb-4">
+  <div class="col-md-5">
+    <label>Data Início</label>
+    <input type="date" name="data_inicio" class="form-control" value="{{ filtro_data_inicio }}">
+  </div>
+  <div class="col-md-5">
+    <label>Data Fim</label>
+    <input type="date" name="data_fim" class="form-control" value="{{ filtro_data_fim }}">
+  </div>
+  <div class="col-md-2 d-flex align-items-end">
+    <button type="submit" class="btn btn-success w-100">Filtrar</button>
+  </div>
+</form>
+
+<table class="table table-striped">
+  <thead class="table-dark">
+    <tr>
+      <th>ID</th>
+      <th>Data</th>
+      <th>Cliente</th>
+      <th>Itens</th>
+      <th>Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for venda in vendas %}
+    <tr>
+      <td>{{ venda.id }}</td>
+      <td>{{ venda.data.strftime('%d/%m/%Y') }}</td>
+      <td>{{ venda.cliente.nome }}</td>
+      <td>
+        <ul>
+          {% for item in venda.itens %}
+          <li>{{ item.produto.nome }} (x{{ item.quantidade }})</li>
+          {% endfor %}
+        </ul>
+      </td>
+      <td>{{ venda.total | round(2) }} Kz</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h5 class="mt-4">💰 Total vendido: <strong>{{ total_vendas | round(2) }} Kz</strong></h5>
+
+{% if not vendas %}
+<div class="alert alert-info mt-3">Nenhuma venda registrada nesse período.</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<canvas id="graficoVendas" height="100"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById('graficoVendas').getContext('2d');
+  const chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: [{% for venda in vendas %}"{{ venda.data.strftime('%d/%m') }}",{% endfor %}],
+      datasets: [{
+        label: 'Total (Kz)',
+        data: [{% for venda in vendas %}{{ venda.total }},{% endfor %}],
+        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+</script>
+{% endblock %}

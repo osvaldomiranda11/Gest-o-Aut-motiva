@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Cadastrar Veículo{% endblock %}
+
+{% block content %}
+<h3>Cadastrar Veículo</h3>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<form method="POST">
+  <div class="mb-3">
+    <label>Marca *</label>
+    <input type="text" name="marca" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label>Modelo</label>
+    <input type="text" name="modelo" class="form-control">
+  </div>
+  <div class="mb-3">
+    <label>Cor</label>
+    <input type="text" name="cor" class="form-control">
+  </div>
+  <div class="mb-3">
+    <label>Matrícula *</label>
+    <input type="text" name="matricula" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label>Ano</label>
+    <input type="text" name="ano" class="form-control">
+  </div>
+  <div class="mb-3">
+    <label>Empresa *</label>
+    <select name="id_empresa" class="form-control" required>
+      <option value="">Selecione uma empresa</option>
+      {% for empresa in empresas %}
+        <option value="{{ empresa.id }}">{{ empresa.nome }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button type="submit" class="btn btn-primary">Cadastrar</button>
+</form>
+{% endblock %}

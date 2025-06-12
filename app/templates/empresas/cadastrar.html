@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Cadastrar Empresa{% endblock %}
+
+{% block content %}
+<h3>Cadastrar Empresa</h3>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<form method="POST">
+  <div class="mb-3">
+    <label>Nome da Empresa *</label>
+    <input type="text" name="nome" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label>Email</label>
+    <input type="email" name="email" class="form-control">
+  </div>
+  <div class="mb-3">
+    <label>Telefone</label>
+    <input type="text" name="telefone" class="form-control">
+  </div>
+  <div class="mb-3">
+    <label>Endereço</label>
+    <input type="text" name="endereco" class="form-control">
+  </div>
+  <button type="submit" class="btn btn-primary">Cadastrar</button>
+</form>
+{% endblock %}

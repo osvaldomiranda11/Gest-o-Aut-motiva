@@ -1,0 +1,127 @@
+from flask import Blueprint, render_template, request, redirect, url_for, flash, make_response
+from flask_login import login_user, logout_user, login_required, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
+from .models import Empresa, Usuario, Veiculo, Status, OrdemServico, Produto, MovimentacaoProduto, Venda
+from . import db
+from .permissions import permissao_requerida
+
+main = Blueprint('main', __name__)
+
+# --- Autenticação ---
+@main.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        senha = request.form['senha']
+        usuario = Usuario.query.filter_by(email=email).first()
+        if usuario and check_password_hash(usuario.senha, senha):
+            login_user(usuario)
+            return redirect(url_for('main.dashboard'))
+        flash('Login inválido', 'danger')
+    return render_template('login.html')
+
+@main.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('main.login'))
+
+# --- Dashboard ---
+@main.route('/')
+@login_required
+def dashboard():
+    total_empresas = Empresa.query.count()
+    total_veiculos = Veiculo.query.count()
+    total_ordens = OrdemServico.query.count()
+    ordens_por_status = db.session.query(Status.nome, db.func.count(OrdemServico.id)).join(OrdemServico).group_by(Status.nome).all()
+    return render_template('dashboard.html', total_empresas=total_empresas, total_veiculos=total_veiculos, total_ordens=total_ordens, ordens_por_status=ordens_por_status)
+
+# --- Empresas ---
+@main.route('/empresas/cadastrar', methods=['GET', 'POST'])
+@login_required
+@permissao_requerida('administrador')
+def cadastrar_empresa():
+    if request.method == 'POST':
+        nome = request.form['nome']
+        email = request.form['email']
+        telefone = request.form['telefone']
+        endereco = request.form['endereco']
+        if not nome:
+            flash('Nome obrigatório', 'danger')
+            return redirect(url_for('main.cadastrar_empresa'))
+        db.session.add(Empresa(nome=nome, email=email, telefone=telefone, endereco=endereco))
+        db.session.commit()
+        flash('Empresa cadastrada', 'success')
+        return redirect(url_for('main.cadastrar_empresa'))
+    return render_template('empresas/form.html')
+
+# --- Listar Empresas ---
+@main.route('/empresas', methods=['GET'])
+@login_required
+@permissao_requerida('administrador')
+def listar_empresas():
+    empresas = Empresa.query.all()
+    return render_template('empresas/listar.html', empresas=empresas)
+
+# --- Veículos ---
+@main.route('/veiculos/cadastrar', methods=['GET', 'POST'])
+@login_required
+@permissao_requerida('administrador', 'estoquista')
+def cadastrar_veiculo():
+    empresas = Empresa.query.all()
+    if request.method == 'POST':
+        marca = request.form['marca']
+        modelo = request.form['modelo']
+        cor = request.form['cor']
+        matricula = request.form['matricula']
+        ano = request.form['ano']
+        id_empresa = request.form['id_empresa']
+        if not marca or not matricula or not id_empresa:
+            flash('Marca, matrícula e empresa são obrigatórios.', 'danger')
+            return redirect(url_for('main.cadastrar_veiculo'))
+        veiculo = Veiculo(marca=marca, modelo=modelo, cor=cor, matricula=matricula, ano=ano, id_empresa=id_empresa)
+        db.session.add(veiculo)
+        db.session.commit()
+        flash('Veículo cadastrado com sucesso!', 'success')
+        return redirect(url_for('main.cadastrar_veiculo'))
+    return render_template('veiculos/form.html', empresas=empresas)
+
+@main.route('/veiculos', methods=['GET'])
+@login_required
+@permissao_requerida('administrador', 'estoquista')
+def listar_veiculos():
+    veiculos = Veiculo.query.join(Empresa).add_columns(
+        Veiculo.id, Veiculo.marca, Veiculo.modelo, Veiculo.cor,
+        Veiculo.matricula, Veiculo.ano, Empresa.nome.label('empresa_nome')
+    ).all()
+    return render_template('veiculos/listar.html', veiculos=veiculos)
+
+# --- Ordens de Serviço ---
+@main.route('/ordens/cadastrar', methods=['GET', 'POST'])
+@login_required
+@permissao_requerida('administrador', 'vendedor')
+def cadastrar_ordem():
+    veiculos = Veiculo.query.all()
+    status_list = Status.query.all()
+    if request.method == 'POST':
+        descricao = request.form['descricao']
+        preco = request.form['valor']
+        id_veiculo = request.form['id_veiculo']
+        id_status = request.form['id_status']
+        ordem = OrdemServico(descricao=descricao, preco_estimado=preco, veiculo_id=id_veiculo, status_id=id_status, criado_por=current_user.id)
+        db.session.add(ordem)
+        db.session.commit()
+        flash('Ordem de serviço cadastrada com sucesso!', 'success')
+        return redirect(url_for('main.cadastrar_ordem'))
+    return render_template('ordens/form.html', veiculos=veiculos, status_list=status_list)
+
+@main.route('/ordens', methods=['GET'])
+@login_required
+@permissao_requerida('administrador', 'vendedor')
+def listar_ordens():
+    ordens = OrdemServico.query.join(Veiculo).join(Empresa).join(Status).add_columns(
+        OrdemServico.id, OrdemServico.descricao, OrdemServico.preco_estimado.label('valor'),
+        Veiculo.matricula, Empresa.nome.label('empresa_nome'), Status.nome.label('status_nome'),
+        OrdemServico.data_criacao.label('data')
+    ).order_by(OrdemServico.data_criacao.desc()).all()
+    return render_template('ordens/listar.html', ordens=ordens)

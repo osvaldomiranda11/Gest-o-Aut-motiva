@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Ordens de Serviço{% endblock %}
+
+{% block content %}
+<h3>Ordens de Serviço</h3>
+
+<table class="table table-bordered table-hover">
+  <thead class="table-dark">
+    <tr>
+      <th>ID</th>
+      <th>Veículo</th>
+      <th>Empresa</th>
+      <th>Status</th>
+      <th>Descrição</th>
+      <th>Valor</th>
+      <th>Data</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for o in ordens %}
+    <tr>
+      <td>{{ o.id }}</td>
+      <td>{{ o.matricula }}</td>
+      <td>{{ o.empresa_nome }}</td>
+      <td>{{ o.status_nome }}</td>
+      <td>{{ o.descricao }}</td>
+      <td>{{ o.valor or "0.00" }} kz</td>
+      <td>{{ o.data.strftime('%d/%m/%Y') }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Relatório de Ordens{% endblock %}
+
+{% block content %}
+<h3>Relatório de Ordens de Serviço</h3>
+
+<form method="POST" class="row g-3 mb-4">
+  <div class="col-md-3">
+    <label>Status</label>
+    <select name="status" class="form-select">
+      <option value="">Todos</option>
+      <option value="em andamento">Em andamento</option>
+      <option value="finalizada">Finalizada</option>
+      <option value="cancelada">Cancelada</option>
+    </select>
+  </div>
+  <div class="col-md-3">
+    <label>Data Início</label>
+    <input type="date" name="data_inicio" class="form-control">
+  </div>
+  <div class="col-md-3">
+    <label>Data Fim</label>
+    <input type="date" name="data_fim" class="form-control">
+  </div>
+  <div class="col-md-3 d-flex align-items-end">
+    <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+  </div>
+</form>
+
+<table class="table table-hover">
+  <thead class="table-dark">
+    <tr>
+      <th>ID</th>
+      <th>Data</th>
+      <th>Cliente</th>
+      <th>Veículo</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for ordem in ordens %}
+    <tr>
+      <td>{{ ordem.id }}</td>
+      <td>{{ ordem.data.strftime('%d/%m/%Y') }}</td>
+      <td>{{ ordem.cliente.nome }}</td>
+      <td>{{ ordem.veiculo.modelo }}</td>
+      <td>{{ ordem.status }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
