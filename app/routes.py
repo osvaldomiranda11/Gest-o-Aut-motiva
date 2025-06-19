@@ -115,6 +115,7 @@ def cadastrar_ordem():
         return redirect(url_for('main.cadastrar_ordem'))
     return render_template('ordens/form.html', veiculos=veiculos, status_list=status_list)
 
+# --- Rotas para Empresas ---
 @main.route('/ordens', methods=['GET'])
 @login_required
 @permissao_requerida('administrador', 'vendedor')
@@ -125,3 +126,53 @@ def listar_ordens():
         OrdemServico.data_criacao.label('data')
     ).order_by(OrdemServico.data_criacao.desc()).all()
     return render_template('ordens/listar.html', ordens=ordens)
+@main.route('/empresas')
+@login_required
+@permissao_requerida('administrador')
+def listar_empresas():
+    empresas = Empresa.query.all()
+    return render_template('empresas/listar.html', empresas=empresas)
+
+@main.route('/empresas/cadastrar', methods=['GET', 'POST'])
+@login_required
+@permissao_requerida('administrador')
+def cadastrar_empresa():
+    if request.method == 'POST':
+        nome = request.form['nome']
+        email = request.form['email']
+        telefone = request.form['telefone']
+        endereco = request.form['endereco']
+        if not nome:
+            flash('Nome é obrigatório.', 'danger')
+            return redirect(url_for('main.cadastrar_empresa'))
+        empresa = Empresa(nome=nome, email=email, telefone=telefone, endereco=endereco)
+        db.session.add(empresa)
+        db.session.commit()
+        flash('Empresa cadastrada com sucesso!', 'success')
+        return redirect(url_for('main.listar_empresas'))
+    return render_template('empresas/form.html')
+
+@main.route('/empresas/editar/<int:id>', methods=['GET', 'POST'])
+@login_required
+@permissao_requerida('administrador')
+def editar_empresa(id):
+    empresa = Empresa.query.get_or_404(id)
+    if request.method == 'POST':
+        empresa.nome = request.form['nome']
+        empresa.email = request.form['email']
+        empresa.telefone = request.form['telefone']
+        empresa.endereco = request.form['endereco']
+        db.session.commit()
+        flash('Empresa atualizada com sucesso!', 'success')
+        return redirect(url_for('main.listar_empresas'))
+    return render_template('empresas/form.html', empresa=empresa)
+
+@main.route('/empresas/excluir/<int:id>', methods=['POST'])
+@login_required
+@permissao_requerida('administrador')
+def excluir_empresa(id):
+    empresa = Empresa.query.get_or_404(id)
+    db.session.delete(empresa)
+    db.session.commit()
+    flash('Empresa excluída com sucesso!', 'success')
+    return redirect(url_for('main.listar_empresas'))
