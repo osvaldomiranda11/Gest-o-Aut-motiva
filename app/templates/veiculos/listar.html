@@ -1,32 +1,40 @@
 {% extends 'base.html' %}
-{% block title %}Lista de Veículos{% endblock %}
+{% block title %}Veículos{% endblock %}
 
 {% block content %}
-<h3>Lista de Veículos</h3>
+<h1>Veículos</h1>
+<a href="{{ url_for('main.cadastrar_veiculo') }}" class="btn btn-primary mb-3">Novo Veículo</a>
 
 <table class="table table-striped">
   <thead>
     <tr>
-      <th>ID</th>
       <th>Marca</th>
       <th>Modelo</th>
       <th>Cor</th>
       <th>Matrícula</th>
       <th>Ano</th>
       <th>Empresa</th>
+      <th>Ações</th>
     </tr>
   </thead>
   <tbody>
     {% for v in veiculos %}
     <tr>
-      <td>{{ v.id }}</td>
       <td>{{ v.marca }}</td>
       <td>{{ v.modelo }}</td>
       <td>{{ v.cor }}</td>
       <td>{{ v.matricula }}</td>
       <td>{{ v.ano }}</td>
       <td>{{ v.empresa_nome }}</td>
+      <td>
+        <a href="{{ url_for('main.editar_veiculo', id=v.id) }}" class="btn btn-sm btn-warning">Editar</a>
+        <form action="{{ url_for('main.excluir_veiculo', id=v.id) }}" method="post" style="display:inline;" onsubmit="return confirm('Deseja mesmo excluir?');">
+          <button class="btn btn-sm btn-danger" type="submit">Excluir</button>
+        </form>
+      </td>
     </tr>
+    {% else %}
+    <tr><td colspan="7">Nenhum veículo cadastrado.</td></tr>
     {% endfor %}
   </tbody>
 </table>
