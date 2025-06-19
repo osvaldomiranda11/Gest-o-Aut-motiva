@@ -151,7 +151,7 @@ def cadastrar_empresa():
         flash('Empresa cadastrada com sucesso!', 'success')
         return redirect(url_for('main.listar_empresas'))
     return render_template('empresas/form.html')
-
+    
 @main.route('/empresas/editar/<int:id>', methods=['GET', 'POST'])
 @login_required
 @permissao_requerida('administrador')
@@ -176,3 +176,65 @@ def excluir_empresa(id):
     db.session.commit()
     flash('Empresa excluída com sucesso!', 'success')
     return redirect(url_for('main.listar_empresas'))
+
+# --- Rotas para Veiculos ---
+@main.route('/veiculos')
+@login_required
+@permissao_requerida('administrador', 'estoquista')
+def listar_veiculos():
+    veiculos = Veiculo.query.join(Empresa).add_columns(
+        Veiculo.id, Veiculo.marca, Veiculo.modelo, Veiculo.cor,
+        Veiculo.matricula, Veiculo.ano, Empresa.nome.label('empresa_nome')
+    ).all()
+    return render_template('veiculos/listar.html', veiculos=veiculos)
+
+@main.route('/veiculos/cadastrar', methods=['GET', 'POST'])
+@login_required
+@permissao_requerida('administrador', 'estoquista')
+def cadastrar_veiculo():
+    empresas = Empresa.query.all()
+    if request.method == 'POST':
+        marca = request.form['marca']
+        modelo = request.form['modelo']
+        cor = request.form['cor']
+        matricula = request.form['matricula']
+        ano = request.form['ano']
+        id_empresa = request.form['id_empresa']
+        if not marca or not matricula or not id_empresa:
+            flash('Marca, matrícula e empresa são obrigatórios.', 'danger')
+            return redirect(url_for('main.cadastrar_veiculo'))
+        veiculo = Veiculo(marca=marca, modelo=modelo, cor=cor,
+                          matricula=matricula, ano=ano, id_empresa=id_empresa)
+        db.session.add(veiculo)
+        db.session.commit()
+        flash('Veículo cadastrado com sucesso!', 'success')
+        return redirect(url_for('main.listar_veiculos'))
+    return render_template('veiculos/form.html', empresas=empresas)
+
+@main.route('/veiculos/editar/<int:id>', methods=['GET', 'POST'])
+@login_required
+@permissao_requerida('administrador', 'estoquista')
+def editar_veiculo(id):
+    veiculo = Veiculo.query.get_or_404(id)
+    empresas = Empresa.query.all()
+    if request.method == 'POST':
+        veiculo.marca = request.form['marca']
+        veiculo.modelo = request.form['modelo']
+        veiculo.cor = request.form['cor']
+        veiculo.matricula = request.form['matricula']
+        veiculo.ano = request.form['ano']
+        veiculo.id_empresa = request.form['id_empresa']
+        db.session.commit()
+        flash('Veículo atualizado com sucesso!', 'success')
+        return redirect(url_for('main.listar_veiculos'))
+    return render_template('veiculos/form.html', veiculo=veiculo, empresas=empresas)
+
+@main.route('/veiculos/excluir/<int:id>', methods=['POST'])
+@login_required
+@permissao_requerida('administrador', 'estoquista')
+def excluir_veiculo(id):
+    veiculo = Veiculo.query.get_or_404(id)
+    db.session.delete(veiculo)
+    db.session.commit()
+    flash('Veículo excluído com sucesso!', 'success')
+    return redirect(url_for('main.listar_veiculos'))
