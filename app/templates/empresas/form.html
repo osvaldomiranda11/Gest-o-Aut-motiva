@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}{{ empresa and 'Editar Empresa' or 'Nova Empresa' }}{% endblock %}
+
+{% block content %}
+<h1>{{ empresa and 'Editar Empresa' or 'Nova Empresa' }}</h1>
+<form method="post">
+  <div class="mb-3">
+    <label for="nome" class="form-label">Nome</label>
+    <input type="text" class="form-control" id="nome" name="nome" required value="{{ empresa.nome if empresa else '' }}">
+  </div>
+  <div class="mb-3">
+    <label for="email" class="form-label">Email</label>
+    <input type="email" class="form-control" id="email" name="email" value="{{ empresa.email if empresa else '' }}">
+  </div>
+  <div class="mb-3">
+    <label for="telefone" class="form-label">Telefone</label>
+    <input type="text" class="form-control" id="telefone" name="telefone" value="{{ empresa.telefone if empresa else '' }}">
+  </div>
+  <div class="mb-3">
+    <label for="endereco" class="form-label">Endereço</label>
+    <input type="text" class="form-control" id="endereco" name="endereco" value="{{ empresa.endereco if empresa else '' }}">
+  </div>
+  <button type="submit" class="btn btn-success">Salvar</button>
+  <a href="{{ url_for('main.listar_empresas') }}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}
