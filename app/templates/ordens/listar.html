@@ -31,3 +31,46 @@
   </tbody>
 </table>
 {% endblock %}
+{% extends 'base.html' %}
+{% block title %}Ordens de Serviço{% endblock %}
+
+{% block content %}
+<h1>Ordens de Serviço</h1>
+<a href="{{ url_for('main.cadastrar_ordem') }}" class="btn btn-primary mb-3">Nova Ordem</a>
+
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descrição</th>
+      <th>Veículo</th>
+      <th>Status</th>
+      <th>Data Criação</th>
+      <th>Entrega</th>
+      <th>Preço Estimado</th>
+      <th>Ações</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for ordem in ordens %}
+    <tr>
+      <td>{{ ordem.id }}</td>
+      <td>{{ ordem.descricao }}</td>
+      <td>{{ ordem.veiculo_matricula }}</td>
+      <td>{{ ordem.status_nome }}</td>
+      <td>{{ ordem.data_criacao.strftime('%d/%m/%Y') }}</td>
+      <td>{{ ordem.data_entrega.strftime('%d/%m/%Y') if ordem.data_entrega else '—' }}</td>
+      <td>{{ ordem.preco_estimado or '—' }}</td>
+      <td>
+        <a href="{{ url_for('main.editar_ordem', id=ordem.id) }}" class="btn btn-sm btn-warning">Editar</a>
+        <form action="{{ url_for('main.excluir_ordem', id=ordem.id) }}" method="post" style="display:inline;" onsubmit="return confirm('Deseja excluir esta ordem?');">
+          <button type="submit" class="btn btn-sm btn-danger">Excluir</button>
+        </form>
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="8">Nenhuma ordem cadastrada.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
