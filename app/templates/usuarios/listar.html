@@ -28,3 +28,40 @@
   </tbody>
 </table>
 {% endblock %}
+{% extends 'base.html' %}
+{% block title %}Usuários{% endblock %}
+
+{% block content %}
+<h1>Usuários</h1>
+<a href="{{ url_for('main.cadastrar_usuario') }}" class="btn btn-primary mb-3">Novo Usuário</a>
+
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nome</th>
+      <th>Email</th>
+      <th>Tipo</th>
+      <th>Ativo</th>
+      <th>Ações</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for u in usuarios %}
+    <tr>
+      <td>{{ u.id }}</td>
+      <td>{{ u.nome }}</td>
+      <td>{{ u.email }}</td>
+      <td>{{ u.tipo }}</td>
+      <td>{{ 'Sim' if u.ativo else 'Não' }}</td>
+      <td>
+        <a href="{{ url_for('main.editar_usuario', id=u.id) }}" class="btn btn-sm btn-warning">Editar</a>
+        <form action="{{ url_for('main.excluir_usuario', id=u.id) }}" method="post" style="display:inline;" onsubmit="return confirm('Deseja excluir este usuário?');">
+          <button type="submit" class="btn btn-sm btn-danger">Excluir</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
