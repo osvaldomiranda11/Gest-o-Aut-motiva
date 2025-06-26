@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}{{ ordem and 'Editar Ordem' or 'Nova Ordem' }}{% endblock %}
+
+{% block content %}
+<h1>{{ ordem and 'Editar Ordem' or 'Nova Ordem' }}</h1>
+<form method="post">
+  <div class="mb-3">
+    <label class="form-label">Descrição</label>
+    <textarea class="form-control" name="descricao" required>{{ ordem.descricao if ordem else '' }}</textarea>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Veículo</label>
+    <select name="veiculo_id" class="form-select" required>
+      {% for v in veiculos %}
+      <option value="{{ v.id }}" {% if ordem and ordem.veiculo_id == v.id %}selected{% endif %}>
+        {{ v.matricula }} - {{ v.marca }} {{ v.modelo }}
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Status</label>
+    <select name="status_id" class="form-select" required>
+      {% for status in status_list %}
+      <option value="{{ status.id }}" {% if ordem and ordem.status_id == status.id %}selected{% endif %}>
+        {{ status.nome }}
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Data de Entrega</label>
+    <input type="date" name="data_entrega" class="form-control" value="{{ ordem.data_entrega.strftime('%Y-%m-%d') if ordem and ordem.data_entrega else '' }}">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Preço Estimado</label>
+    <input type="number" name="preco_estimado" class="form-control" step="0.01" value="{{ ordem.preco_estimado if ordem else '' }}">
+  </div>
+  <button type="submit" class="btn btn-success">Salvar</button>
+  <a href="{{ url_for('main.listar_ordens') }}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}
