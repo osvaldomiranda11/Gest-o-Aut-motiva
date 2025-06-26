@@ -238,3 +238,70 @@ def excluir_veiculo(id):
     db.session.commit()
     flash('Veículo excluído com sucesso!', 'success')
     return redirect(url_for('main.listar_veiculos'))
+
+@main.route('/ordens')
+@login_required
+@permissao_requerida('administrador', 'vendedor')
+def listar_ordens():
+    ordens = OrdemServico.query.join(Veiculo).join(Status).add_columns(
+        OrdemServico.id, OrdemServico.descricao, OrdemServico.data_criacao,
+        OrdemServico.data_entrega, OrdemServico.preco_estimado,
+        Veiculo.matricula.label('veiculo_matricula'),
+        Status.nome.label('status_nome')
+    ).all()
+    return render_template('ordens/listar.html', ordens=ordens)
+
+@main.route('/ordens/cadastrar', methods=['GET', 'POST'])
+@login_required
+@permissao_requerida('administrador', 'vendedor')
+def cadastrar_ordem():
+    veiculos = Veiculo.query.all()
+    status_list = Status.query.all()
+    if request.method == 'POST':
+        descricao = request.form['descricao']
+        data_entrega = request.form['data_entrega']
+        preco = request.form['preco_estimado']
+        status_id = request.form['status_id']
+        veiculo_id = request.form['veiculo_id']
+
+        ordem = OrdemServico(
+            descricao=descricao,
+            data_entrega=data_entrega if data_entrega else None,
+            preco_estimado=preco,
+            status_id=status_id,
+            veiculo_id=veiculo_id,
+            criado_por=current_user.id
+        )
+        db.session.add(ordem)
+        db.session.commit()
+        flash('Ordem cadastrada com sucesso!', 'success')
+        return redirect(url_for('main.listar_ordens'))
+    return render_template('ordens/form.html', veiculos=veiculos, status_list=status_list)
+
+@main.route('/ordens/editar/<int:id>', methods=['GET', 'POST'])
+@login_required
+@permissao_requerida('administrador', 'vendedor')
+def editar_ordem(id):
+    ordem = OrdemServico.query.get_or_404(id)
+    veiculos = Veiculo.query.all()
+    status_list = Status.query.all()
+    if request.method == 'POST':
+        ordem.descricao = request.form['descricao']
+        ordem.data_entrega = request.form['data_entrega']
+        ordem.preco_estimado = request.form['preco_estimado']
+        ordem.status_id = request.form['status_id']
+        ordem.veiculo_id = request.form['veiculo_id']
+        db.session.commit()
+        flash('Ordem atualizada com sucesso!', 'success')
+        return redirect(url_for('main.listar_ordens'))
+    return render_template('ordens/form.html', ordem=ordem, veiculos=veiculos, status_list=status_list)
+
+@main.route('/ordens/excluir/<int:id>', methods=['POST'])
+@login_required
+@permissao_requerida('administrador')
+def excluir_ordem(id):
+    ordem = OrdemServico.query.get_or_404(id)
+    db.session.delete(ordem)
+    db.session.commit()
+    flash('Ordem excluída com sucesso!', 'success')
+    return redirect(url_for('main.listar_ordens'))
