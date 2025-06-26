@@ -84,3 +84,50 @@
   });
 </script>
 {% endblock %}
+{% extends 'base.html' %}
+{% block title %}Relatório de Vendas{% endblock %}
+
+{% block content %}
+<h1>Relatório de Vendas</h1>
+
+<form method="post" class="row g-3 mb-4">
+  <div class="col-md-4">
+    <label class="form-label">Data inicial</label>
+    <input type="date" name="data_inicial" class="form-control" required>
+  </div>
+  <div class="col-md-4">
+    <label class="form-label">Data final</label>
+    <input type="date" name="data_final" class="form-control" required>
+  </div>
+  <div class="col-md-4 d-flex align-items-end">
+    <button type="submit" class="btn btn-primary">Filtrar</button>
+  </div>
+</form>
+
+{% if vendas %}
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Data</th>
+      <th>Produto</th>
+      <th>Quantidade</th>
+      <th>Total (Kz)</th>
+      <th>Vendedor</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for venda in vendas %}
+    <tr>
+      <td>{{ venda.data.strftime('%d/%m/%Y') }}</td>
+      <td>{{ venda.produto.nome }}</td>
+      <td>{{ venda.quantidade }}</td>
+      <td>{{ venda.total }}</td>
+      <td>{{ venda.usuario.nome }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="text-muted">Nenhuma venda encontrada no período selecionado.</p>
+{% endif %}
+{% endblock %}
