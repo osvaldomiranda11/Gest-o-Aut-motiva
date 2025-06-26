@@ -366,3 +366,21 @@ def excluir_usuario(id):
     db.session.commit()
     flash('Usuário excluído com sucesso!', 'success')
     return redirect(url_for('main.listar_usuarios'))
+@main.route('/relatorios/vendas', methods=['GET', 'POST'])
+@login_required
+@permissao_requerida('administrador')
+def relatorio_vendas():
+    vendas = []
+    data_inicial = data_final = None
+
+    if request.method == 'POST':
+        data_inicial = request.form.get('data_inicial')
+        data_final = request.form.get('data_final')
+
+        if data_inicial and data_final:
+            vendas = Venda.query.filter(
+                Venda.data >= data_inicial,
+                Venda.data <= data_final
+            ).all()
+
+    return render_template('relatorios/vendas.html', vendas=vendas, data_inicial=data_inicial, data_final=data_final)
