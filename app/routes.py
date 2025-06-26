@@ -305,3 +305,64 @@ def excluir_ordem(id):
     db.session.commit()
     flash('Ordem excluída com sucesso!', 'success')
     return redirect(url_for('main.listar_ordens'))
+@main.route('/usuarios')
+@login_required
+@permissao_requerida('administrador')
+def listar_usuarios():
+    usuarios = Usuario.query.all()
+    return render_template('usuarios/listar.html', usuarios=usuarios)
+
+@main.route('/usuarios/cadastrar', methods=['GET', 'POST'])
+@login_required
+@permissao_requerida('administrador')
+def cadastrar_usuario():
+    if request.method == 'POST':
+        nome = request.form['nome']
+        email = request.form['email']
+        senha = request.form['senha']
+        tipo = request.form['tipo']
+        ativo = 'ativo' in request.form
+
+        if Usuario.query.filter_by(email=email).first():
+            flash('Email já cadastrado.', 'warning')
+            return redirect(url_for('main.cadastrar_usuario'))
+
+        usuario = Usuario(nome=nome, email=email, tipo=tipo, ativo=ativo)
+        usuario.set_senha(senha)
+        db.session.add(usuario)
+        db.session.commit()
+        flash('Usuário cadastrado com sucesso!', 'success')
+        return redirect(url_for('main.listar_usuarios'))
+
+    return render_template('usuarios/form.html')
+
+@main.route('/usuarios/editar/<int:id>', methods=['GET', 'POST'])
+@login_required
+@permissao_requerida('administrador')
+def editar_usuario(id):
+    usuario = Usuario.query.get_or_404(id)
+    if request.method == 'POST':
+        usuario.nome = request.form['nome']
+        usuario.email = request.form['email']
+        usuario.tipo = request.form['tipo']
+        usuario.ativo = 'ativo' in request.form
+
+        nova_senha = request.form['senha']
+        if nova_senha:
+            usuario.set_senha(nova_senha)
+
+        db.session.commit()
+        flash('Usuário atualizado com sucesso!', 'success')
+        return redirect(url_for('main.listar_usuarios'))
+
+    return render_template('usuarios/form.html', usuario=usuario)
+
+@main.route('/usuarios/excluir/<int:id>', methods=['POST'])
+@login_required
+@permissao_requerida('administrador')
+def excluir_usuario(id):
+    usuario = Usuario.query.get_or_404(id)
+    db.session.delete(usuario)
+    db.session.commit()
+    flash('Usuário excluído com sucesso!', 'success')
+    return redirect(url_for('main.listar_usuarios'))
